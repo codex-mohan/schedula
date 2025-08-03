@@ -1,34 +1,14 @@
 import os
-import json
 import uuid
-from datetime import date, time, datetime
+from datetime import date, time
 from typing import List, Optional, Any
 
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, String, Date, Time
+from sqlalchemy import create_engine, Column, String, Integer, Date, Time, Float
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from fastapi.middleware.cors import CORSMiddleware
 
-
-# --- JSON-BASED DOCTOR RECORDS ---
-DOCTORS_FILE = "doctors.json"
-
-
-def load_doctors_from_json():
-    try:
-        with open(DOCTORS_FILE, "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-
-
-def save_doctors_to_json(doctors_list: List):
-    with open(DOCTORS_FILE, "w") as f:
-        json.dump(doctors_list, f, indent=2)
-
-
-doctors = load_doctors_from_json()
 
 # --- DATABASE SETUP (POSTGRESQL) ---
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -61,6 +41,17 @@ class PatientDB(Base):
     name = Column(String, index=True)
     dob = Column(Date)
     contact = Column(String)
+
+
+class DoctorDB(Base):
+    __tablename__ = "doctors"
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String)
+    department = Column(String)
+    experience = Column(Integer)
+    success_rate = Column(Float)
+    qualification = Column(String)
+    room = Column(String)
 
 
 class AppointmentDB(Base):
@@ -153,33 +144,36 @@ def register_patient(patient: Patient, db: Session = Depends(get_db)):
 
 
 @app.get("/doctors")
-def list_doctors():
+def list_doctors(db: Session = Depends(get_db)):
+    doctors = db.query(DoctorDB).all()
     return doctors
 
 
 @app.post("/doctors/add")
-def add_doctor(doctor: Doctor):
-    if any(d["id"] == doctor.id for d in doctors):
+def add_doctor(doctor: Doctor, db: Session = Depends(get_db)):
+    existing = db.query(DoctorDB).filter(DoctorDB.id == doctor.id).first()
+    if existing:
         raise HTTPException(
             status_code=400, detail=f"Doctor with ID '{doctor.id}' already exists."
         )
 
-    doctors.append(doctor.model_dump())
-    save_doctors_to_json(doctors)
+    db_doctor = DoctorDB(**doctor.model_dump())
+    db.add(db_doctor)
+    db.commit()
+    db.refresh(db_doctor)
     return {"message": "Doctor added successfully", "doctor_id": doctor.id}
 
 
 @app.delete("/doctors/remove/{doctor_id}")
-def remove_doctor(doctor_id: str):
-    global doctors
-    doctor_found = any(d["id"] == doctor_id for d in doctors)
-    if not doctor_found:
+def remove_doctor(doctor_id: str, db: Session = Depends(get_db)):
+    doctor_to_remove = db.query(DoctorDB).filter(DoctorDB.id == doctor_id).first()
+    if not doctor_to_remove:
         raise HTTPException(
             status_code=404, detail=f"Doctor with ID '{doctor_id}' not found."
         )
 
-    doctors = [d for d in doctors if d["id"] != doctor_id]
-    save_doctors_to_json(doctors)
+    db.delete(doctor_to_remove)
+    db.commit()
     return {"message": f"Doctor with ID '{doctor_id}' removed successfully."}
 
 
@@ -189,7 +183,9 @@ def book_appointment(appointment: Appointment, db: Session = Depends(get_db)):
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    doctor_exists = any(doc["id"] == appointment.doctor_id for doc in doctors)
+    doctor_exists = (
+        db.query(DoctorDB).filter(DoctorDB.id == appointment.doctor_id).first()
+    )
     if not doctor_exists:
         raise HTTPException(status_code=404, detail="Doctor not found")
 
@@ -282,12 +278,3 @@ def get_doctor_appointments(
         .all()
     )
     return appts
-
-
-# Run Locally:
-# You must first set your DATABASE_URL environment variable.
-# For example:
-# export DATABASE_URL="postgresql://user:password@host:port/dbname"
-#
-# Then run the Uvicorn server:
-# uvicorn your_file_name:app --reload
