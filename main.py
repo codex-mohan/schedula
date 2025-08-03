@@ -1,27 +1,45 @@
-# Schedula API Server
-# A deployable API for appointment management using FastAPI + SQLite.
-# Deployable on Render, Railway, or Deta with data persistence.
+import os
+import json
+import uuid
+from datetime import date, time, datetime
+from typing import List, Optional, Any
+
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from typing import List, Optional
-from sqlalchemy import create_engine, Column, String, Integer, Date, Time, ForeignKey
+from sqlalchemy import create_engine, Column, String, Date, Time
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from fastapi.middleware.cors import CORSMiddleware
-import uuid
-import os
 
-# Database setup (SQLite for persistence)
-# For Render, use persistent disk
-if os.environ.get("RENDER"):
-    DATABASE_URL = "sqlite:////var/data/schedula.db"
-else:
-    DATABASE_URL = "sqlite:///./schedula.db"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# --- JSON-BASED DOCTOR RECORDS ---
+DOCTORS_FILE = "doctors.json"
+
+
+def load_doctors_from_json():
+    try:
+        with open(DOCTORS_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_doctors_to_json(doctors_list: List):
+    with open(DOCTORS_FILE, "w") as f:
+        json.dump(doctors_list, f, indent=2)
+
+
+doctors = load_doctors_from_json()
+
+# --- DATABASE SETUP (POSTGRESQL) ---
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable not set.")
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# CORS for web crawlers and clients
+# --- FASTAPI SETUP ---
 app = FastAPI(
     title="Schedula API",
     description="API for healthcare appointment management.",
@@ -36,233 +54,58 @@ app.add_middleware(
 )
 
 
-# DB Models
+# --- DB MODELS ---
 class PatientDB(Base):
     __tablename__ = "patients"
     id = Column(String, primary_key=True, index=True)
     name = Column(String, index=True)
-    dob = Column(String)
+    dob = Column(Date)
     contact = Column(String)
 
 
 class AppointmentDB(Base):
     __tablename__ = "appointments"
     id = Column(String, primary_key=True, index=True)
-    patient_id = Column(String, ForeignKey("patients.id"))
-    doctor_id = Column(String)
-    date = Column(String)
-    time = Column(String)
-    status = Column(String, default="scheduled")  # scheduled, completed, cancelled
+    patient_id = Column(String, index=True)
+    doctor_id = Column(String, index=True)
+    date = Column(Date)
+    time = Column(Time)
+    status = Column(String, default="scheduled")
     notes = Column(String, default="")
 
 
 Base.metadata.create_all(bind=engine)
 
-# Doctors List (expanded with more departments)
-doctors = [
-    # Original doctors
-    {
-        "id": "doc1",
-        "name": "Dr. Asha Reddy",
-        "department": "Cardiology",
-        "experience": 15,
-        "success_rate": 98,
-        "qualification": "MD Cardiology",
-        "room": "Ward 1",
-    },
-    {
-        "id": "doc2",
-        "name": "Dr. Rahul Verma",
-        "department": "Neurology",
-        "experience": 12,
-        "success_rate": 96,
-        "qualification": "DM Neurology",
-        "room": "Ward 2",
-    },
-    {
-        "id": "doc3",
-        "name": "Dr. Priya Nair",
-        "department": "Orthopedics",
-        "experience": 10,
-        "success_rate": 94,
-        "qualification": "MS Ortho",
-        "room": "Ward 3",
-    },
-    {
-        "id": "doc4",
-        "name": "Dr. Kavita Joshi",
-        "department": "Pediatrics",
-        "experience": 8,
-        "success_rate": 97,
-        "qualification": "MD Pediatrics",
-        "room": "Ward 4",
-    },
-    {
-        "id": "doc5",
-        "name": "Dr. Anil Kumar",
-        "department": "Dermatology",
-        "experience": 11,
-        "success_rate": 95,
-        "qualification": "MD Dermatology",
-        "room": "Ward 5",
-    },
-    {
-        "id": "doc6",
-        "name": "Dr. Meera Singh",
-        "department": "Gynecology",
-        "experience": 14,
-        "success_rate": 99,
-        "qualification": "MD Gynecology",
-        "room": "Ward 6",
-    },
-    {
-        "id": "doc7",
-        "name": "Dr. Vishal Rao",
-        "department": "ENT",
-        "experience": 9,
-        "success_rate": 93,
-        "qualification": "MS ENT",
-        "room": "Ward 7",
-    },
-    {
-        "id": "doc8",
-        "name": "Dr. Sanjay Gupta",
-        "department": "Oncology",
-        "experience": 18,
-        "success_rate": 85,
-        "qualification": "DM Oncology",
-        "room": "Ward 8",
-    },
-    {
-        "id": "doc9",
-        "name": "Dr. Anjali Sharma",
-        "department": "Radiology",
-        "experience": 13,
-        "success_rate": 97,
-        "qualification": "MD Radiology",
-        "room": "Radiology Dept 1",
-    },
-    {
-        "id": "doc10",
-        "name": "Dr. Rajesh Khanna",
-        "department": "Urology",
-        "experience": 16,
-        "success_rate": 92,
-        "qualification": "MS Urology",
-        "room": "Ward 9",
-    },
-    {
-        "id": "doc11",
-        "name": "Dr. Sunita Patel",
-        "department": "Endocrinology",
-        "experience": 14,
-        "success_rate": 94,
-        "qualification": "DM Endocrinology",
-        "room": "Ward 10",
-    },
-    {
-        "id": "doc12",
-        "name": "Dr. Vikram Malhotra",
-        "department": "Gastroenterology",
-        "experience": 17,
-        "success_rate": 91,
-        "qualification": "DM Gastroenterology",
-        "room": "Ward 11",
-    },
-    {
-        "id": "doc13",
-        "name": "Dr. Neha Agarwal",
-        "department": "Pulmonology",
-        "experience": 11,
-        "success_rate": 93,
-        "qualification": "MD Pulmonology",
-        "room": "Ward 12",
-    },
-    {
-        "id": "doc14",
-        "name": "Dr. Arjun Nair",
-        "department": "Nephrology",
-        "experience": 15,
-        "success_rate": 90,
-        "qualification": "DM Nephrology",
-        "room": "Ward 13",
-    },
-    {
-        "id": "doc15",
-        "name": "Dr. Deepika Menon",
-        "department": "Rheumatology",
-        "experience": 12,
-        "success_rate": 89,
-        "qualification": "MD Rheumatology",
-        "room": "Ward 14",
-    },
-    {
-        "id": "doc16",
-        "name": "Dr. Rohit Verma",
-        "department": "Hematology",
-        "experience": 10,
-        "success_rate": 92,
-        "qualification": "MD Hematology",
-        "room": "Ward 15",
-    },
-    {
-        "id": "doc17",
-        "name": "Dr. Kavita Desai",
-        "department": "Psychiatry",
-        "experience": 20,
-        "success_rate": 88,
-        "qualification": "MD Psychiatry",
-        "room": "OPD 1",
-    },
-    {
-        "id": "doc18",
-        "name": "Dr. Sameer Khan",
-        "department": "Ophthalmology",
-        "experience": 13,
-        "success_rate": 96,
-        "qualification": "MS Ophthalmology",
-        "room": "Eye Care Unit 1",
-    },
-    {
-        "id": "doc19",
-        "name": "Dr. Preeti Singh",
-        "department": "Dentistry",
-        "experience": 9,
-        "success_rate": 98,
-        "qualification": "MDS Prosthodontics",
-        "room": "Dental Unit 1",
-    },
-    {
-        "id": "doc20",
-        "name": "Dr. Amitabh Choudhary",
-        "department": "Anesthesiology",
-        "experience": 22,
-        "success_rate": 99,
-        "qualification": "MD Anesthesiology",
-        "room": "OT Complex",
-    },
-]
 
-
-# Pydantic Models
+# --- PYDANTIC MODELS ---
 class Patient(BaseModel):
     id: Optional[str] = None
     name: str
-    dob: str  # YYYY-MM-DD
+    dob: date
     contact: str
+
+
+class Doctor(BaseModel):
+    id: str
+    name: str
+    department: str
+    experience: int
+    success_rate: float
+    qualification: str
+    room: str
 
 
 class Appointment(BaseModel):
     id: Optional[str] = None
     patient_id: str
     doctor_id: str
-    date: str  # YYYY-MM-DD
-    time: str  # HH:MM
+    date: date
+    time: time
     status: str = "scheduled"
     notes: str = ""
 
 
-# Dependency
+# --- DEPENDENCY ---
 def get_db():
     db = SessionLocal()
     try:
@@ -271,9 +114,16 @@ def get_db():
         db.close()
 
 
-# API Routes
+# --- API ROUTES ---
+@app.get("/")
+def read_root():
+    return {
+        "message": "Welcome to Schedula API - Healthcare Appointment Management System"
+    }
+
+
 @app.get("/patients/search")
-def search_patient(name: str, dob: str, db: Session = Depends(get_db)):
+def search_patient(name: str, dob: date, db: Session = Depends(get_db)):
     patient = (
         db.query(PatientDB).filter(PatientDB.name == name, PatientDB.dob == dob).first()
     )
@@ -307,19 +157,42 @@ def list_doctors():
     return doctors
 
 
+@app.post("/doctors/add")
+def add_doctor(doctor: Doctor):
+    if any(d["id"] == doctor.id for d in doctors):
+        raise HTTPException(
+            status_code=400, detail=f"Doctor with ID '{doctor.id}' already exists."
+        )
+
+    doctors.append(doctor.model_dump())
+    save_doctors_to_json(doctors)
+    return {"message": "Doctor added successfully", "doctor_id": doctor.id}
+
+
+@app.delete("/doctors/remove/{doctor_id}")
+def remove_doctor(doctor_id: str):
+    global doctors
+    doctor_found = any(d["id"] == doctor_id for d in doctors)
+    if not doctor_found:
+        raise HTTPException(
+            status_code=404, detail=f"Doctor with ID '{doctor_id}' not found."
+        )
+
+    doctors = [d for d in doctors if d["id"] != doctor_id]
+    save_doctors_to_json(doctors)
+    return {"message": f"Doctor with ID '{doctor_id}' removed successfully."}
+
+
 @app.post("/appointments/book")
 def book_appointment(appointment: Appointment, db: Session = Depends(get_db)):
-    # Check if patient exists
     patient = db.query(PatientDB).filter(PatientDB.id == appointment.patient_id).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    # Check if doctor exists
     doctor_exists = any(doc["id"] == appointment.doctor_id for doc in doctors)
     if not doctor_exists:
         raise HTTPException(status_code=404, detail="Doctor not found")
 
-    # Check for conflicting appointments
     conflict = (
         db.query(AppointmentDB)
         .filter(
@@ -352,19 +225,18 @@ def book_appointment(appointment: Appointment, db: Session = Depends(get_db)):
 
 @app.put("/appointments/reschedule/{appointment_id}")
 def reschedule_appointment(
-    appointment_id: str, date: str, time: str, db: Session = Depends(get_db)
+    appointment_id: str, new_date: date, new_time: time, db: Session = Depends(get_db)
 ):
     appt = db.query(AppointmentDB).filter(AppointmentDB.id == appointment_id).first()
     if not appt:
         raise HTTPException(status_code=404, detail="Appointment not found")
 
-    # Check for conflicting appointments
     conflict = (
         db.query(AppointmentDB)
         .filter(
             AppointmentDB.doctor_id == appt.doctor_id,
-            AppointmentDB.date == date,
-            AppointmentDB.time == time,
+            AppointmentDB.date == new_date,
+            AppointmentDB.time == new_time,
             AppointmentDB.id != appointment_id,
             AppointmentDB.status != "cancelled",
         )
@@ -374,8 +246,8 @@ def reschedule_appointment(
     if conflict:
         raise HTTPException(status_code=400, detail="Time slot already booked")
 
-    appt.date = date
-    appt.time = time
+    appt.date = new_date
+    appt.time = new_time
     db.commit()
     return {"message": "Appointment rescheduled"}
 
@@ -396,13 +268,15 @@ def get_appointments(patient_id: str, db: Session = Depends(get_db)):
     return appts
 
 
-@app.get("/appointments/doctor/{doctor_id}/{date}")
-def get_doctor_appointments(doctor_id: str, date: str, db: Session = Depends(get_db)):
+@app.get("/appointments/doctor/{doctor_id}/{query_date}")
+def get_doctor_appointments(
+    doctor_id: str, query_date: date, db: Session = Depends(get_db)
+):
     appts = (
         db.query(AppointmentDB)
         .filter(
             AppointmentDB.doctor_id == doctor_id,
-            AppointmentDB.date == date,
+            AppointmentDB.date == query_date,
             AppointmentDB.status != "cancelled",
         )
         .all()
@@ -410,12 +284,10 @@ def get_doctor_appointments(doctor_id: str, date: str, db: Session = Depends(get
     return appts
 
 
-@app.get("/")
-def read_root():
-    return {
-        "message": "Welcome to Schedula API - Healthcare Appointment Management System"
-    }
-
-
 # Run Locally:
-# uvicorn schedula_api_server:app --reload
+# You must first set your DATABASE_URL environment variable.
+# For example:
+# export DATABASE_URL="postgresql://user:password@host:port/dbname"
+#
+# Then run the Uvicorn server:
+# uvicorn your_file_name:app --reload
