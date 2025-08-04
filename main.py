@@ -3,9 +3,9 @@ import uuid
 from datetime import date, time
 from typing import List, Optional, Any
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, String, Integer, Date, Time, Float
+from sqlalchemy import create_engine, Column, String, Integer, Date, Time, Float, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -52,6 +52,7 @@ class DoctorDB(Base):
     success_rate = Column(Float)
     qualification = Column(String)
     room = Column(String)
+    timings = Column(JSON, default=[])
 
 
 class AppointmentDB(Base):
@@ -76,6 +77,12 @@ class Patient(BaseModel):
     contact: str
 
 
+class TimingSlot(BaseModel):
+    day_of_week: str
+    start_time: time
+    end_time: time
+
+
 class Doctor(BaseModel):
     id: str
     name: str
@@ -84,12 +91,14 @@ class Doctor(BaseModel):
     success_rate: float
     qualification: str
     room: str
+    timings: List[TimingSlot] = []
 
 
 class Appointment(BaseModel):
     id: Optional[str] = None
-    patient_id: str
-    doctor_id: str
+    patient_name: str
+    patient_dob: date
+    doctor_name: str
     date: date
     time: time
     status: str = "scheduled"
@@ -178,23 +187,37 @@ def remove_doctor(doctor_id: str, db: Session = Depends(get_db)):
 
 
 @app.post("/appointments/book")
-def book_appointment(appointment: Appointment, db: Session = Depends(get_db)):
-    patient = db.query(PatientDB).filter(PatientDB.id == appointment.patient_id).first()
-    if not patient:
-        raise HTTPException(status_code=404, detail="Patient not found")
-
-    doctor_exists = (
-        db.query(DoctorDB).filter(DoctorDB.id == appointment.doctor_id).first()
+def book_appointment(appointment_data: Appointment, db: Session = Depends(get_db)):
+    # Find patient by name and DOB
+    patient = (
+        db.query(PatientDB)
+        .filter(
+            PatientDB.name == appointment_data.patient_name,
+            PatientDB.dob == appointment_data.patient_dob,
+        )
+        .first()
     )
-    if not doctor_exists:
-        raise HTTPException(status_code=404, detail="Doctor not found")
+    if not patient:
+        raise HTTPException(
+            status_code=404, detail="Patient not found with provided name and DOB."
+        )
 
+    # Find doctor by name
+    doctor = (
+        db.query(DoctorDB).filter(DoctorDB.name == appointment_data.doctor_name).first()
+    )
+    if not doctor:
+        raise HTTPException(
+            status_code=404, detail="Doctor not found with provided name."
+        )
+
+    # Check for conflicting appointments
     conflict = (
         db.query(AppointmentDB)
         .filter(
-            AppointmentDB.doctor_id == appointment.doctor_id,
-            AppointmentDB.date == appointment.date,
-            AppointmentDB.time == appointment.time,
+            AppointmentDB.doctor_id == doctor.id,
+            AppointmentDB.date == appointment_data.date,
+            AppointmentDB.time == appointment_data.time,
             AppointmentDB.status != "cancelled",
         )
         .first()
@@ -203,20 +226,20 @@ def book_appointment(appointment: Appointment, db: Session = Depends(get_db)):
     if conflict:
         raise HTTPException(status_code=400, detail="Time slot already booked")
 
-    appointment.id = str(uuid.uuid4())
+    new_appointment_id = str(uuid.uuid4())
     db_appt = AppointmentDB(
-        id=appointment.id,
-        patient_id=appointment.patient_id,
-        doctor_id=appointment.doctor_id,
-        date=appointment.date,
-        time=appointment.time,
-        status=appointment.status,
-        notes=appointment.notes,
+        id=new_appointment_id,
+        patient_id=patient.id,
+        doctor_id=doctor.id,
+        date=appointment_data.date,
+        time=appointment_data.time,
+        status=appointment_data.status,
+        notes=appointment_data.notes,
     )
     db.add(db_appt)
     db.commit()
     db.refresh(db_appt)
-    return {"message": "Appointment booked", "appointment_id": appointment.id}
+    return {"message": "Appointment booked", "appointment_id": new_appointment_id}
 
 
 @app.put("/appointments/reschedule/{appointment_id}")
@@ -258,20 +281,46 @@ def cancel_appointment(appointment_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Appointment not found")
 
 
-@app.get("/appointments/{patient_id}")
-def get_appointments(patient_id: str, db: Session = Depends(get_db)):
-    appts = db.query(AppointmentDB).filter(AppointmentDB.patient_id == patient_id).all()
+@app.get("/appointments")
+def get_appointments(
+    patient_name: str = Query(..., description="Name of the patient"),
+    patient_dob: date = Query(
+        ..., description="Date of birth of the patient (YYYY-MM-DD)"
+    ),
+    db: Session = Depends(get_db),
+):
+    patient = (
+        db.query(PatientDB)
+        .filter(PatientDB.name == patient_name, PatientDB.dob == patient_dob)
+        .first()
+    )
+    if not patient:
+        raise HTTPException(
+            status_code=404, detail="Patient not found with provided name and DOB."
+        )
+
+    appts = db.query(AppointmentDB).filter(AppointmentDB.patient_id == patient.id).all()
     return appts
 
 
-@app.get("/appointments/doctor/{doctor_id}/{query_date}")
+@app.get("/appointments/doctor")
 def get_doctor_appointments(
-    doctor_id: str, query_date: date, db: Session = Depends(get_db)
+    doctor_name: str = Query(..., description="Name of the doctor"),
+    query_date: date = Query(
+        ..., description="Date for which to retrieve appointments (YYYY-MM-DD)"
+    ),
+    db: Session = Depends(get_db),
 ):
+    doctor = db.query(DoctorDB).filter(DoctorDB.name == doctor_name).first()
+    if not doctor:
+        raise HTTPException(
+            status_code=404, detail="Doctor not found with provided name."
+        )
+
     appts = (
         db.query(AppointmentDB)
         .filter(
-            AppointmentDB.doctor_id == doctor_id,
+            AppointmentDB.doctor_id == doctor.id,
             AppointmentDB.date == query_date,
             AppointmentDB.status != "cancelled",
         )

@@ -6,7 +6,19 @@
     "experience": 15,
     "success_rate": 98,
     "qualification": "MD Cardiology",
-    "room": "Ward 1"
+    "room": "Ward 1",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      }
+    ]
   },
   {
     "id": "doc2",
@@ -15,7 +27,19 @@
     "experience": 12,
     "success_rate": 96,
     "qualification": "DM Neurology",
-    "room": "Ward 2"
+    "room": "Ward 2",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      },
+      {
+        "day_of_week": "Thursday",
+        "start_time": "11:00:00",
+        "end_time": "15:00:00"
+      }
+    ]
   },
   {
     "id": "doc3",
@@ -24,7 +48,19 @@
     "experience": 10,
     "success_rate": 94,
     "qualification": "MS Ortho",
-    "room": "Ward 3"
+    "room": "Ward 3",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      }
+    ]
   },
   {
     "id": "doc4",
@@ -33,7 +69,19 @@
     "experience": 8,
     "success_rate": 97,
     "qualification": "MD Pediatrics",
-    "room": "Ward 4"
+    "room": "Ward 4",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      }
+    ]
   },
   {
     "id": "doc5",
@@ -42,7 +90,19 @@
     "experience": 11,
     "success_rate": 95,
     "qualification": "MD Dermatology",
-    "room": "Ward 5"
+    "room": "Ward 5",
+    "timings": [
+      {
+        "day_of_week": "Thursday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      }
+    ]
   },
   {
     "id": "doc6",
@@ -51,7 +111,19 @@
     "experience": 14,
     "success_rate": 99,
     "qualification": "MD Gynecology",
-    "room": "Ward 6"
+    "room": "Ward 6",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      }
+    ]
   },
   {
     "id": "doc7",
@@ -60,7 +132,19 @@
     "experience": 9,
     "success_rate": 93,
     "qualification": "MS ENT",
-    "room": "Ward 7"
+    "room": "Ward 7",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      },
+      {
+        "day_of_week": "Thursday",
+        "start_time": "11:00:00",
+        "end_time": "15:00:00"
+      }
+    ]
   },
   {
     "id": "doc8",
@@ -69,7 +153,19 @@
     "experience": 18,
     "success_rate": 85,
     "qualification": "DM Oncology",
-    "room": "Ward 8"
+    "room": "Ward 8",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      }
+    ]
   },
   {
     "id": "doc9",
@@ -78,7 +174,19 @@
     "experience": 13,
     "success_rate": 97,
     "qualification": "MD Radiology",
-    "room": "Radiology Dept 1"
+    "room": "Radiology Dept 1",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      },
+      {
+        "day_of_week": "Thursday",
+        "start_time": "11:00:00",
+        "end_time": "15:00:00"
+      }
+    ]
   },
   {
     "id": "doc10",
@@ -87,7 +195,19 @@
     "experience": 16,
     "success_rate": 92,
     "qualification": "MS Urology",
-    "room": "Ward 9"
+    "room": "Ward 9",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      }
+    ]
   },
   {
     "id": "doc11",
@@ -96,7 +216,19 @@
     "experience": 14,
     "success_rate": 94,
     "qualification": "DM Endocrinology",
-    "room": "Ward 10"
+    "room": "Ward 10",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      }
+    ]
   },
   {
     "id": "doc12",
@@ -105,7 +237,19 @@
     "experience": 17,
     "success_rate": 91,
     "qualification": "DM Gastroenterology",
-    "room": "Ward 11"
+    "room": "Ward 11",
+    "timings": [
+      {
+        "day_of_week": "Thursday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      }
+    ]
   },
   {
     "id": "doc13",
@@ -114,7 +258,19 @@
     "experience": 11,
     "success_rate": 93,
     "qualification": "MD Pulmonology",
-    "room": "Ward 12"
+    "room": "Ward 12",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      }
+    ]
   },
   {
     "id": "doc14",
@@ -123,7 +279,19 @@
     "experience": 15,
     "success_rate": 90,
     "qualification": "DM Nephrology",
-    "room": "Ward 13"
+    "room": "Ward 13",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      },
+      {
+        "day_of_week": "Thursday",
+        "start_time": "11:00:00",
+        "end_time": "15:00:00"
+      }
+    ]
   },
   {
     "id": "doc15",
@@ -132,7 +300,19 @@
     "experience": 12,
     "success_rate": 89,
     "qualification": "MD Rheumatology",
-    "room": "Ward 14"
+    "room": "Ward 14",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      }
+    ]
   },
   {
     "id": "doc16",
@@ -141,7 +321,19 @@
     "experience": 10,
     "success_rate": 92,
     "qualification": "MD Hematology",
-    "room": "Ward 15"
+    "room": "Ward 15",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      }
+    ]
   },
   {
     "id": "doc17",
@@ -150,7 +342,19 @@
     "experience": 20,
     "success_rate": 88,
     "qualification": "MD Psychiatry",
-    "room": "OPD 1"
+    "room": "OPD 1",
+    "timings": [
+      {
+        "day_of_week": "Thursday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      }
+    ]
   },
   {
     "id": "doc18",
@@ -159,7 +363,19 @@
     "experience": 13,
     "success_rate": 96,
     "qualification": "MS Ophthalmology",
-    "room": "Eye Care Unit 1"
+    "room": "Eye Care Unit 1",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      },
+      {
+        "day_of_week": "Wednesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      }
+    ]
   },
   {
     "id": "doc19",
@@ -168,7 +384,19 @@
     "experience": 9,
     "success_rate": 98,
     "qualification": "MDS Prosthodontics",
-    "room": "Dental Unit 1"
+    "room": "Dental Unit 1",
+    "timings": [
+      {
+        "day_of_week": "Tuesday",
+        "start_time": "10:00:00",
+        "end_time": "14:00:00"
+      },
+      {
+        "day_of_week": "Thursday",
+        "start_time": "11:00:00",
+        "end_time": "15:00:00"
+      }
+    ]
   },
   {
     "id": "doc20",
@@ -177,6 +405,18 @@
     "experience": 22,
     "success_rate": 99,
     "qualification": "MD Anesthesiology",
-    "room": "OT Complex"
+    "room": "OT Complex",
+    "timings": [
+      {
+        "day_of_week": "Monday",
+        "start_time": "14:00:00",
+        "end_time": "18:00:00"
+      },
+      {
+        "day_of_week": "Friday",
+        "start_time": "09:00:00",
+        "end_time": "13:00:00"
+      }
+    ]
   }
 ]

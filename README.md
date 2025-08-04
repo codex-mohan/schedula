@@ -1,11 +1,11 @@
 # Schedula API Server 🗓️
 
-[](https://www.google.com/search?q=https://github.com/codex-mohan/schedula/actions)
-[](https://www.python.org/)
-[](https://fastapi.tiangolo.com/)
-[](https://neon.tech/)
-[](https://www.uvicorn.org/)
-[](https://render.com/)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/codex-mohan/schedula/main.yml?branch=neondb&label=Build%20Status&style=for-the-badge)](https://github.com/codex-mohan/schedula/actions)
+[![Python Version](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Neon DB](https://img.shields.io/badge/Neon%20DB-PostgreSQL-4CAF50?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
+[![Uvicorn](https://img.shields.io/badge/Uvicorn-Standard-orange?style=for-the-badge&logo=python&logoColor=white)](https://www.uvicorn.org/)
+[![Deployed on Render](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)
 
 A robust and deployable API server for healthcare appointment management, built with FastAPI and backed by a persistent Neon PostgreSQL database. This project leverages modern Python practices and is designed for easy deployment on cloud platforms like Render.
 
@@ -23,12 +23,12 @@ A robust and deployable API server for healthcare appointment management, built 
 ## ✨ Features
 
 - **Patient Management:** Register new patients and search for existing ones.
-- **Doctor Management:** Add, list, and remove doctor profiles with details like department, experience, and qualifications.
+- **Doctor Management:** Add, list, and remove doctor profiles with details like department, experience, qualifications, and **availability timings**.
 - **Appointment Management:**
-  - Book appointments for patients with specific doctors, dates, and times.
-  - Reschedule existing appointments.
-  - Cancel appointments.
-  - Retrieve appointments by patient ID or by doctor ID and date.
+  - Book appointments for patients with specific doctors, dates, and times using **patient names and doctor names**.
+  - Reschedule existing appointments by ID.
+  - Cancel appointments by ID.
+  - Retrieve appointments by **patient name and DOB** or by **doctor name and date**.
 - **Persistent Data Storage:** All patient, doctor, and appointment data is stored securely and persistently in a Neon PostgreSQL database.
 - **CORS Enabled:** Allows secure cross-origin requests from web clients.
 - **Scalable & Deployable:** Designed for easy deployment on cloud platforms (e.g., Render, Railway, Deta).
@@ -54,27 +54,26 @@ Follow these steps to get the Schedula API server running on your local machine.
 ### Prerequisites
 
 - **Python 3.9+**: Ensure you have a compatible Python version installed.
-
 - **uv**: The `uv` package manager is used for dependency management. If you don't have `uv` installed, you can install it via:
 
   **macOS and Linux:**
 
   ```bash
-  curl -LsSf https://astral.sh/uv/install.sh | sh
+  curl -LsSf [https://astral.sh/uv/install.sh](https://astral.sh/uv/install.sh) | sh
   ```
 
   **Windows (PowerShell, run as Administrator):**
 
   ```powershell
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  powershell -ExecutionPolicy ByPass -c "irm [https://astral.sh/uv/install.ps1](https://astral.sh/uv/install.ps1) | iex"
   ```
 
-### 1\. Clone the Repository
+### 1. Clone the Repository
 
 First, clone the project repository and navigate to the `neondb` branch:
 
 ```bash
-git clone https://github.com/codex-mohan/schedula.git
+git clone [https://github.com/codex-mohan/schedula.git](https://github.com/codex-mohan/schedula.git)
 cd schedula
 git checkout neondb
 ```
@@ -110,21 +109,21 @@ Replace `[user]`, `[password]`, `[host]`, and `[dbname]` with your actual Neon c
 
 ### 4\. Database Schema Creation and Migration
 
-Your application's database schema (tables for patients, doctors, appointments, and timings) will be automatically created when the `main.py` application starts up for the first time.
+Your application's database schema (tables for patients, doctors, appointments) will be automatically created when the `main.py` application starts up for the first time.
 
-If you had existing doctor data in `doctors.json` from a previous setup and want to migrate it to the Neon DB, follow these steps:
+**If you are updating an existing database schema (e.g., adding the `timings` column to `doctors` table):**
 
-**a) Ensure `doctors.json` is present:**
-Make sure the `doctors.json` file (if it contains data you wish to migrate) is in the root directory of your project.
-
-**b) Run the migration script:**
-Execute the `migrate_doctors.py` script once. This will read doctors from your local `doctors.json` and insert them into your Neon database.
-
-```bash
-python migrate_doctors.py
-```
-
-> **Note:** This script will only run if the `doctors` table is empty to prevent duplicate entries.
+1.  **Manually add the `timings` column to your `doctors` table in Neon.** Go to your Neon Dashboard, open the **SQL Editor**, and run the following SQL command:
+    ```sql
+    ALTER TABLE doctors ADD COLUMN timings JSONB DEFAULT '[]';
+    ```
+    This step is crucial for existing databases to recognize the new column.
+2.  **Ensure `doctors.json` is updated** with the `timings` data for each doctor.
+3.  **Run the migration script:** Execute the `migrate_doctors.py` script once. This will read doctors from your local `doctors.json` and insert them into your Neon database.
+    ```bash
+    python migrate_doctors.py
+    ```
+    > **Note:** This script will only run if the `doctors` table is empty to prevent duplicate entries. If you have existing data and want to re-populate it with timings, you might need to clear the `doctors` table first (e.g., `DELETE FROM doctors;` in Neon's SQL Editor) before running the migration script.
 
 ### 5\. Run the Application
 
@@ -140,12 +139,12 @@ The API will be accessible at `http://127.0.0.1:8000`. You can view the interact
 
 ## 🧪 API Endpoints (cURL Examples)
 
-Here are `curl` commands to interact with your deployed API at `https://schedula-ouql.onrender.com`. Remember to replace placeholders like `PASTE_YOUR_PATIENT_ID_HERE` with actual IDs from previous responses.
+Here are `curl` commands to interact with your deployed API at `https://schedula-ouql.onrender.com`.
 
 ### 1\. Root Endpoint
 
 ```bash
-curl -X GET "https://schedula-ouql.onrender.com/"
+curl -X GET "[https://schedula-ouql.onrender.com/](https://schedula-ouql.onrender.com/)"
 ```
 
 ### 2\. Patient Endpoints
@@ -153,7 +152,7 @@ curl -X GET "https://schedula-ouql.onrender.com/"
 **a) Register a New Patient**
 
 ```bash
-curl -X POST "https://schedula-ouql.onrender.com/patients/register" \
+curl -X POST "[https://schedula-ouql.onrender.com/patients/register](https://schedula-ouql.onrender.com/patients/register)" \
 -H "Content-Type: application/json" \
 -d '{
   "name": "Alice Wonderland",
@@ -162,12 +161,12 @@ curl -X POST "https://schedula-ouql.onrender.com/patients/register" \
 }'
 ```
 
-_(Copy `patient_id` from the output)_
+_(Note: Copy the `patient_id` from the output for reference, though name/DOB will be used for appointments)_
 
 **b) Search for a Patient**
 
 ```bash
-curl -X GET "https://schedula-ouql.onrender.com/patients/search?name=Alice%20Wonderland&dob=1992-03-25"
+curl -X GET "[https://schedula-ouql.onrender.com/patients/search?name=Alice%20Wonderland&dob=1992-03-25](https://schedula-ouql.onrender.com/patients/search?name=Alice%20Wonderland&dob=1992-03-25)"
 ```
 
 ### 3\. Doctor Endpoints
@@ -175,7 +174,7 @@ curl -X GET "https://schedula-ouql.onrender.com/patients/search?name=Alice%20Won
 **a) Add a New Doctor**
 
 ```bash
-curl -X POST "https://schedula-ouql.onrender.com/doctors/add" \
+curl -X POST "[https://schedula-ouql.onrender.com/doctors/add](https://schedula-ouql.onrender.com/doctors/add)" \
 -H "Content-Type: application/json" \
 -d '{
   "id": "dr-alice-jones",
@@ -184,64 +183,69 @@ curl -X POST "https://schedula-ouql.onrender.com/doctors/add" \
   "experience": 7,
   "success_rate": 91.5,
   "qualification": "MBBS",
-  "room": "GP-101"
+  "room": "GP-101",
+  "timings": [
+    { "day_of_week": "Monday", "start_time": "09:00:00", "end_time": "13:00:00" },
+    { "day_of_week": "Wednesday", "start_time": "10:00:00", "end_time": "14:00:00" }
+  ]
 }'
 ```
 
-_(Copy `doctor_id` from the output)_
+_(Note: Copy the `doctor_id` from the output for reference, though name will be used for appointments)_
 
 **b) List All Doctors**
 
 ```bash
-curl -X GET "https://schedula-ouql.onrender.com/doctors"
+curl -X GET "[https://schedula-ouql.onrender.com/doctors](https://schedula-ouql.onrender.com/doctors)"
 ```
 
 **c) Remove a Doctor**
 
 ```bash
-curl -X DELETE "https://schedula-ouql.onrender.com/doctors/remove/dr-alice-jones"
+curl -X DELETE "[https://schedula-ouql.onrender.com/doctors/remove/dr-alice-jones](https://schedula-ouql.onrender.com/doctors/remove/dr-alice-jones)"
 ```
 
 ### 4\. Appointment Endpoints
 
-**a) Book a New Appointment**
+**a) Book a New Appointment (using names)**
 
 ```bash
-curl -X POST "https://schedula-ouql.onrender.com/appointments/book" \
+curl -X POST "[https://schedula-ouql.onrender.com/appointments/book](https://schedula-ouql.onrender.com/appointments/book)" \
 -H "Content-Type: application/json" \
 -d '{
-  "patient_id": "PASTE_YOUR_PATIENT_ID_HERE",
-  "doctor_id": "dr-alice-jones",
+  "patient_name": "Alice Wonderland",
+  "patient_dob": "1992-03-25",
+  "doctor_name": "Dr. Alice Jones",
   "date": "2025-09-01",
   "time": "09:00:00",
   "notes": "Routine check-up"
 }'
 ```
 
-_(Copy `appointment_id` from the output)_
+_(Copy `appointment_id` from the output for rescheduling/canceling)_
 
-**b) Get a Patient's Appointments**
+**b) Get a Patient's Appointments (using name and DOB)**
 
 ```bash
-curl -X GET "https://schedula-ouql.onrender.com/appointments/PASTE_YOUR_PATIENT_ID_HERE"
+curl -X GET "[https://schedula-ouql.onrender.com/appointments?patient_name=Alice%20Wonderland&patient_dob=1992-03-25](https://schedula-ouql.onrender.com/appointments?patient_name=Alice%20Wonderland&patient_dob=1992-03-25)"
 ```
 
-**c) Get a Doctor's Appointments on a Specific Date**
+**c) Get a Doctor's Appointments on a Specific Date (using doctor name)**
 
 ```bash
-curl -X GET "https://schedula-ouql.onrender.com/appointments/doctor/dr-alice-jones/2025-09-01"
+curl -X GET "[https://schedula-ouql.onrender.com/appointments/doctor?doctor_name=Dr.%20Alice%20Jones&query_date=2025-09-01](https://schedula-ouql.onrender.com/appointments/doctor?doctor_name=Dr.%20Alice%20Jones&query_date=2025-09-01)"
 ```
 
-**d) Reschedule an Appointment**
+**d) Reschedule an Appointment (using appointment ID)**
 
 ```bash
-curl -X PUT "https://schedula-ouql.onrender.com/appointments/reschedule/PASTE_YOUR_APPOINTMENT_ID_HERE?new_date=2025-09-03&new_time=10:00:00"
+curl -X PUT "[https://schedula-ouql.onrender.com/appointments/reschedule/PASTE_YOUR_APPOINTMENT_ID_HERE?new_date=2025-09-03&new_time=10:00:00](https://schedula-ouql.onrender.com/appointments/reschedule/PASTE_YOUR_APPOINTMENT_ID_HERE?new_date=2025-09-03&new_time=10:00:00)"
 ```
 
-**e) Cancel an Appointment**
+**e) Cancel an Appointment (using appointment ID)**
 
 ```bash
-curl -X DELETE "https://schedula-ouql.onrender.com/appointments/cancel/PASTE_YOUR_APPOINTMENT_ID_HERE"
+curl -X DELETE "[https://schedula-ouql.onrender.com/appointments/cancel/PASTE_YOUR_APPOINTMENT_ID_HERE](https://schedula-ouql.onrender.com/appointments/cancel/PASTE_YOUR_APPOINTMENT_ID_HERE)"
 ```
 
 ---
@@ -263,9 +267,11 @@ This project is configured for seamless deployment on Render.
 ## 🔮 Future Enhancements
 
 - **Authentication and Authorization:** Implement user authentication (e.g., JWT) and role-based access control for patients, doctors, and administrators.
-- **Doctor Availability Slots:** Integrate the `doctor_timings` table to manage precise availability slots for doctors, preventing manual time slot conflicts.
+- **Doctor Availability Enforcement:** Integrate the `timings` data to prevent booking appointments outside a doctor's declared availability.
 - **Notifications:** Add email or SMS notifications for appointment confirmations, reminders, and changes.
 - **Search and Filtering:** Enhance search capabilities for appointments and doctors with more advanced filtering options (e.g., by department, status, date range).
 - **Frontend Integration:** Develop a user-friendly web or mobile frontend to interact with this API.
 - **Admin Panel:** Create a dedicated interface for administrators to manage patients, doctors, and appointments.
 - **Testing:** Implement comprehensive unit and integration tests for all API endpoints.
+
+<!-- end list -->

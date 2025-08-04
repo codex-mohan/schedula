@@ -1,9 +1,15 @@
 import os
 import json
-from sqlalchemy import create_engine
+from sqlalchemy import (
+    create_engine,
+    Column,
+    String,
+    Integer,
+    Float,
+    JSON,
+)  # Import JSON
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, String, Integer, Float
 
 # --- Configuration (must match your main application) ---
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -25,22 +31,24 @@ class DoctorDB(Base):
     success_rate = Column(Float)
     qualification = Column(String)
     room = Column(String)
+    timings = Column(JSON, default=[])  # Column to store JSON array of timings
 
 
-# --- CRITICAL FIX: Create the tables before attempting to use them ---
-Base.metadata.create_all(bind=engine)
+# IMPORTANT: Base.metadata.create_all(bind=engine) is REMOVED from here.
+# It should only be in your main.py for initial table creation, or handled by a proper migration tool.
 
 
 # --- Migration Script Logic ---
 def migrate_doctors():
     db = SessionLocal()
     try:
-        # 1. Check if the doctors table is already populated
+        # Check if the doctors table is already populated
+        # This check will now work because the 'timings' column exists
         if db.query(DoctorDB).count() > 0:
             print("Doctors table is not empty. Aborting migration.")
             return
 
-        # 2. Load data from the local JSON file
+        # Load data from the local JSON file
         try:
             with open("doctors.json", "r") as f:
                 doctors_data = json.load(f)
@@ -50,8 +58,9 @@ def migrate_doctors():
 
         print(f"Found {len(doctors_data)} doctors to migrate.")
 
-        # 3. Insert each doctor into the database
+        # Insert each doctor into the database
         for doctor_dict in doctors_data:
+            # SQLAlchemy's JSON type will handle the list of dicts directly
             db_doctor = DoctorDB(**doctor_dict)
             db.add(db_doctor)
 
