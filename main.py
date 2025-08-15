@@ -77,7 +77,6 @@ class AppointmentDB(Base):
     doctor_id = Column(String, index=True)
     date = Column(Date)
     time = Column(Time)
-    ward = Column(String)
     status = Column(String, default="scheduled")
     notes = Column(String, default="")
 
